@@ -1,13 +1,18 @@
 package com.shortthirdman.sharedlibs.util;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class DateUtils {
 
@@ -32,10 +37,7 @@ public class DateUtils {
      * @return
      */
     public static boolean isLeapYear(int year) {
-        if ((year % 100 != 0) || (year % 400 == 0)) {
-            return true;
-        }
-        return false;
+        return (year % 100 != 0) || (year % 400 == 0);
     }
 
     /**
@@ -86,15 +88,62 @@ public class DateUtils {
     }
 
     /**
-     * @param startDate
-     * @param endDate
+     * @param startDate the starting date
+     * @param endDate the ending date
      * @return
      */
     public static List<LocalDate> getDatesBetween(LocalDate startDate, LocalDate endDate) {
+        if (startDate == null || endDate == null) {
+            return null;
+        }
+
         long numOfDaysBetween = ChronoUnit.DAYS.between(startDate, endDate);
         return IntStream.iterate(0, i -> i + 1)
                 .limit(numOfDaysBetween)
-                .mapToObj(i -> startDate.plusDays(i))
+                .mapToObj(startDate::plusDays)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Converts a date from source to target format in specified locale
+     *
+     * @param dateValue the date value to be formatted
+     * @param fromFmt the original source format
+     * @param toFmt the target destination format
+     * @param locale the locale, if not passed defaults to `Locale.ENGLISH`
+     * @return
+     * @throws ParseException
+     */
+    public static String formatDate(String dateValue, String fromFmt, String toFmt, Locale locale) throws ParseException {
+        if (StringUtils.isBlank(dateValue) || StringUtils.isBlank(fromFmt) || StringUtils.isBlank(toFmt)) {
+            return null;
+        }
+
+        if (Objects.isNull(locale)) {
+            locale = Locale.ENGLISH;
+        }
+
+        SimpleDateFormat sdf = new SimpleDateFormat(fromFmt, locale);
+        Date d = sdf.parse(dateValue);
+
+        sdf = new SimpleDateFormat(toFmt, locale);
+
+        return sdf.format(d);
+    }
+
+    /**
+     * Converts current date into required format
+     *
+     * @param format the target format
+     * @return
+     */
+    public static String getCurrentDate(String format) {
+        if (StringUtils.isBlank(format)) {
+            return null;
+        }
+
+        SimpleDateFormat formatter = new SimpleDateFormat(format);
+        Date date = new Date();
+        return formatter.format(date);
     }
 }
