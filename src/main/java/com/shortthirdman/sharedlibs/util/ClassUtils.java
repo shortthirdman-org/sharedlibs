@@ -10,6 +10,10 @@ import java.net.URL;
  */
 public class ClassUtils {
 
+    private ClassUtils() {
+
+    }
+
     /**
      * Return a resource URL.
      * BL: if this is command line operation, the classloading issues
@@ -49,11 +53,12 @@ public class ClassUtils {
      * @param caller       The Class object of the calling object
      */
     public static URL getResource(String resourceName, Class<?> caller) {
-        URL url = null;
-        url = Thread.currentThread().getContextClassLoader().getResource(resourceName);
+        URL url = Thread.currentThread().getContextClassLoader().getResource(resourceName);
+
         if (url == null) {
             url = ClassUtils.class.getClassLoader().getResource(resourceName);
         }
+
         if (url == null) {
             url = caller.getClassLoader().getResource(resourceName);
         }

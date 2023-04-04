@@ -15,7 +15,7 @@ public class CryptoUtilsTest {
 
     @Test
     public void testUsingSymmetricKey() throws Exception {
-        SecretKey symmetricKey = CryptoUtils.generateKey();
+        SecretKey symmetricKey = CryptoUtils.generateKey("AES", 128);
         IvParameterSpec iv = CryptoUtils.generateIv();
 
         // Encrypt the message using the symmetric key

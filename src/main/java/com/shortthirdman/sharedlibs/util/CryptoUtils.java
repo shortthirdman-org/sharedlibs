@@ -8,6 +8,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 import javax.xml.bind.DatatypeConverter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.AlgorithmParameterSpec;
@@ -36,17 +37,34 @@ public class CryptoUtils {
 
     public static int getBlockSize(final String algorithm) throws NoSuchPaddingException, NoSuchAlgorithmException {
         int size = 0;
+
         if (StringUtils.isBlank(algorithm)) {
             return size;
         }
+
         size = Cipher.getInstance(algorithm).getBlockSize();
+
         return size;
     }
 
-    public static SecretKey generateKey() throws NoSuchAlgorithmException {
-        KeyGenerator keygenerator = KeyGenerator.getInstance("AES");
-        keygenerator.init(128);
-        return keygenerator.generateKey();
+    /**
+     * @param algorithm the algorithm to generate key for
+     * @param n the key length
+     * @return the secret key
+     * @throws NoSuchAlgorithmException
+     */
+    public static SecretKey generateKey(final String algorithm, final int n) throws NoSuchAlgorithmException {
+        SecretKey key = null;
+
+        if (algorithm == null || n <= 0) {
+            return key;
+        }
+
+        KeyGenerator keygenerator = KeyGenerator.getInstance(algorithm);
+        keygenerator.init(n);
+        key = keygenerator.generateKey();
+
+        return key;
     }
 
     public static IvParameterSpec generateIv() {
@@ -171,5 +189,96 @@ public class CryptoUtils {
         byte[] enc = DatatypeConverter.parseBase64Binary(encryptedText);
         byte[] utf8 = dcipher.doFinal(enc);
         return new String(utf8, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * @param algorithm the algorithm name
+     * @param key the secret key
+     * @param iv the IV parameter secret key
+     * @param inputFile the input file
+     * @param outputFile the output encrypted file
+     * @throws IOException
+     * @throws NoSuchPaddingException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidAlgorithmParameterException
+     * @throws InvalidKeyException
+     * @throws BadPaddingException
+     * @throws IllegalBlockSizeException
+     */
+    public static void encryptFile(String algorithm, SecretKey key, IvParameterSpec iv,
+                                   File inputFile, File outputFile) throws IOException, NoSuchPaddingException,
+            NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException,
+            BadPaddingException, IllegalBlockSizeException {
+
+        Cipher cipher = Cipher.getInstance(algorithm);
+        cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+        FileInputStream inputStream = new FileInputStream(inputFile);
+        FileOutputStream outputStream = new FileOutputStream(outputFile);
+        byte[] buffer = new byte[64];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            byte[] output = cipher.update(buffer, 0, bytesRead);
+            if (output != null) {
+                outputStream.write(output);
+            }
+        }
+        byte[] outputBytes = cipher.doFinal();
+        if (outputBytes != null) {
+            outputStream.write(outputBytes);
+        }
+        inputStream.close();
+        outputStream.close();
+    }
+
+    /**
+     * Encrypt the given serialized object with the specified algorithm
+     * @param algorithm the algorithm name
+     * @param object the object to encrypt
+     * @param key the secret key
+     * @param iv the IV parameter key
+     * @return
+     * @throws NoSuchPaddingException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidAlgorithmParameterException
+     * @throws InvalidKeyException
+     * @throws IOException
+     * @throws IllegalBlockSizeException
+     */
+    public static SealedObject encryptObject(String algorithm, Serializable object,
+                                             SecretKey key, IvParameterSpec iv) throws NoSuchPaddingException,
+            NoSuchAlgorithmException, InvalidAlgorithmParameterException,
+            InvalidKeyException, IOException, IllegalBlockSizeException {
+
+        Cipher cipher = Cipher.getInstance(algorithm);
+        cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+        SealedObject sealedObject = new SealedObject(object, cipher);
+        return sealedObject;
+    }
+
+    /**
+     * @param algorithm
+     * @param sealedObject
+     * @param key
+     * @param iv
+     * @return
+     * @throws NoSuchPaddingException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidAlgorithmParameterException
+     * @throws InvalidKeyException
+     * @throws ClassNotFoundException
+     * @throws BadPaddingException
+     * @throws IllegalBlockSizeException
+     * @throws IOException
+     */
+    public static Serializable decryptObject(String algorithm, SealedObject sealedObject,
+                                             SecretKey key, IvParameterSpec iv) throws NoSuchPaddingException,
+            NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException,
+            ClassNotFoundException, BadPaddingException, IllegalBlockSizeException,
+            IOException {
+
+        Cipher cipher = Cipher.getInstance(algorithm);
+        cipher.init(Cipher.DECRYPT_MODE, key, iv);
+        Serializable unsealObject = (Serializable) sealedObject.getObject(cipher);
+        return unsealObject;
     }
 }

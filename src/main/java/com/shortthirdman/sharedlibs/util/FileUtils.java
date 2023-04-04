@@ -1,5 +1,7 @@
 package com.shortthirdman.sharedlibs.util;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
+
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -9,13 +11,13 @@ import java.util.zip.GZIPOutputStream;
 public class FileUtils {
 
     /**
-     * @param sourceFile
-     * @param targetFile
+     * @param sourceFile the source file
+     * @param targetFile the target file
      */
     public static void gzipCompress(String sourceFile, String targetFile) {
         try (FileOutputStream fos = new FileOutputStream(targetFile);
              GZIPOutputStream gzos = new GZIPOutputStream(fos);
-             FileInputStream fis = new FileInputStream(sourceFile);) {
+             FileInputStream fis = new FileInputStream(sourceFile)) {
 
             byte[] buffer = new byte[1024];
             int length;
@@ -35,7 +37,7 @@ public class FileUtils {
     public static void gzipDecompress(String sourceFile, String targetFile) {
         try (FileInputStream fis = new FileInputStream(sourceFile);
              GZIPInputStream gzis = new GZIPInputStream(fis);
-             FileOutputStream fos = new FileOutputStream(targetFile);) {
+             FileOutputStream fos = new FileOutputStream(targetFile)) {
 
             byte[] buffer = new byte[1024];
             int length;
@@ -53,7 +55,7 @@ public class FileUtils {
      * @param destination
      */
     public static void copyFiles(File source, File destination) {
-        try (InputStream is = new FileInputStream(source); OutputStream os = new FileOutputStream(destination)) {
+        try (InputStream is = Files.newInputStream(source.toPath()); OutputStream os = Files.newOutputStream(destination.toPath())) {
             byte[] buffer = new byte[1024];
             int length;
             while ((length = is.read(buffer)) > 0) {
@@ -89,33 +91,31 @@ public class FileUtils {
      * @throws IOException
      */
     public static void copyFile(File source, File destination) throws IOException {
-        FileChannel sourceChannel = null;
-        FileChannel destChannel = null;
-        try {
-            sourceChannel = new FileInputStream(source).getChannel();
-            destChannel = new FileOutputStream(destination).getChannel();
+        try (FileInputStream fis = new FileInputStream(source);
+             FileOutputStream fos = new FileOutputStream(destination);
+             FileChannel sourceChannel = fis.getChannel();
+             FileChannel destChannel = fos.getChannel()) {
             destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
-        } finally {
-            sourceChannel.close();
-            destChannel.close();
         }
     }
 
     /**
      * @param dir
      */
-    public static void removeDirectory(File dir) {
+    public static boolean removeDirectory(File dir) {
+        boolean result = false;
         if (dir.isDirectory()) {
             File[] files = dir.listFiles();
-            if (files != null && files.length > 0) {
+            if (files != null) {
                 for (File aFile : files) {
                     removeDirectory(aFile);
                 }
             }
-            dir.delete();
+            result = dir.delete();
         } else {
-            dir.delete();
+            result = dir.delete();
         }
+        return result;
     }
 
     /**
@@ -124,7 +124,7 @@ public class FileUtils {
     public static void cleanDirectory(File dir) {
         if (dir.isDirectory()) {
             File[] files = dir.listFiles();
-            if (files != null && files.length > 0) {
+            if (files != null) {
                 for (File aFile : files) {
                     removeDirectory(aFile);
                 }

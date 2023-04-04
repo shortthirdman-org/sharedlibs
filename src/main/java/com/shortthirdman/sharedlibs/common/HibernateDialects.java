@@ -38,7 +38,9 @@ public enum HibernateDialects {
 
     @Override
     public String toString() {
-        return driverClassName;
+        StringBuilder sb = new StringBuilder();
+        sb.append("Vendor=").append(vendorName).append(", Driver Class=").append(driverClassName);
+        return sb.toString();
     }
 
     public String getDriveClassName() {

@@ -10,6 +10,11 @@ import java.util.stream.Collectors;
 
 public class MapUtils {
 
+    /**
+     * @param keyExtractors the key extractors function
+     * @param <T> generic type of the predicate
+     * @return
+     */
     public static <T> Predicate<T> distinctByKeys(Function<? super T, ?>... keyExtractors) {
         final Map<List<?>, Boolean> seen = new ConcurrentHashMap<>();
 
