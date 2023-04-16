@@ -16,7 +16,7 @@ import java.util.TreeMap;
 
 /**
  * Utility helper class for manipulating binary tree <br>
- * <a href="https://www.programcreek.com/2012/12/leetcode-validate-binary-search-tree-java/">Validate BST</a>
+ * @author shortthirdman-org
  */
 public class BinaryTreeUtils {
 
@@ -711,6 +711,45 @@ public class BinaryTreeUtils {
         return root;
     }
 
+    /**
+     * Given a non-empty binary search tree and a target value, find the value in the BST that is closest to the target.<br>
+     * Recursively traverse down the root. When target is less than root, go left; when target is greater than root, go right.
+     *
+     * @param rootNode the root node of binary tree
+     * @param target the target value to search for
+     * @return the closest value to target
+     */
+    public static int closestValue(TreeNode rootNode, double target) {
+        double min = Double.MAX_VALUE;
+        int result = rootNode.getValue();
+
+        while (rootNode != null) {
+            if (target > rootNode.getValue()) {
+                double diff = Math.abs(rootNode.getValue() - target);
+
+                if (diff < min) {
+                    min = Math.min(min, diff);
+                    result = rootNode.getValue();
+                }
+
+                rootNode = rootNode.getRightNode();
+            } else if (target < rootNode.getValue()) {
+                double diff = Math.abs(rootNode.getValue() - target);
+
+                if (diff < min) {
+                    min = Math.min(min, diff);
+                    result = rootNode.getValue();
+                }
+
+                rootNode = rootNode.getLeftNode();
+            } else {
+                return rootNode.getValue();
+            }
+        }
+
+        return result;
+    }
+
     public static boolean isValidBST(TreeNode root) {
         return isValidBST(root, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
     }
@@ -725,5 +764,67 @@ public class BinaryTreeUtils {
         }
 
         return isValidBST(p.getLeftNode(), min, p.getValue()) && isValidBST(p.getRightNode(), p.getValue(), max);
+    }
+
+    /**
+     * For a undirected graph with tree characteristics, we can choose any node as the root.<br>
+     * The result graph is then a rooted tree. Among all possible rooted trees, those with minimum height are called minimum height trees (MHTs).<br>
+     *
+     * Given such a graph, write a function to find all the MHTs and return a list of their root labels.<br>
+     * The graph contains n nodes which are labeled from 0 to n - 1. You will be given the number n and a list of undirected edges (each edge is a pair of labels).
+     *
+     * @param n the number of the nodes
+     * @param edges the edges of the tree
+     * @return list of their root labels/edges
+     */
+    public static List<Integer> findMinHeightTrees(int n, int[][] edges) {
+        List<Integer> result = new ArrayList<>();
+        if (n == 0) {
+            return result;
+        }
+
+        if (n == 1) {
+            result.add(0);
+            return result;
+        }
+
+        ArrayList<HashSet<Integer>> graph = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            graph.add(new HashSet<>());
+        }
+
+        for (int[] edge : edges) {
+            graph.get(edge[0]).add(edge[1]);
+            graph.get(edge[1]).add(edge[0]);
+        }
+
+        LinkedList<Integer> leaves = new LinkedList<>();
+        for (int i = 0; i < n; i++) {
+            if (graph.get(i).size() == 1) {
+                leaves.offer(i);
+            }
+        }
+
+        if (leaves.size() == 0) {
+            return result;
+        }
+
+        while (n > 2) {
+            n = n - leaves.size();
+
+            LinkedList<Integer> newLeaves = new LinkedList<>();
+
+            for (int l : leaves) {
+                int neighbor = graph.get(l).iterator().next();
+                graph.get(neighbor).remove(l);
+                if (graph.get(neighbor).size() == 1) {
+                    newLeaves.add(neighbor);
+                }
+            }
+
+            leaves = newLeaves;
+        }
+
+        return leaves;
     }
 }

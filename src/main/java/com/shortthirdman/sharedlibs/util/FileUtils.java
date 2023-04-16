@@ -1,7 +1,5 @@
 package com.shortthirdman.sharedlibs.util;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
-
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
