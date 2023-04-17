@@ -53,9 +53,9 @@
     <connection>scm:git:git@github.com:shortthirdman-org/sharedlibs.git</connection>
     <developerConnection>scm:git:ssh://github.com:shortthirdman-org/sharedlibs.git</developerConnection>
     <url>https://github.com/shortthirdman-org/sharedlibs/tree/master</url>
-  </scm> -->
+  </scm>
 
-  <!-- <ciManagement>
+  <ciManagement>
     <system></system>
     <url></url>
     <notifiers></notifiers>
@@ -227,13 +227,6 @@
             <forceCreation>true</forceCreation>
             <detail>true</detail>
           </configuration>
-		  <executions>
-			<execution>
-				<goals>
-					<goal>jar</goal>
-				</goals>
-			</execution>
-		  </executions>
 		</plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
